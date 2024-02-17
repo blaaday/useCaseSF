@@ -11,15 +11,12 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         Set<Id> groups = new Set<Id>();
         for (Match__c match : newMatches) {
             tournaments.add(match.Tournament__c);
-            teams.add(match.Team_1__c);teams.add(match.Team_2__c);
             groups.add(match.Group__c);
         }
 
-        List<Match__c> oldMatches = [SELECT Id, Tournament__c, Group__c, Team_1__c, Team_2__c, Match_Date__c
+        List<Match__c> oldMatches = [SELECT Id, Tournament__c, Group__c, Team_1__c, Team_2__c, Match_Date__c, Round__c
                                         FROM Match__c
-                                        WHERE Tournament__c IN :tournaments 
-                                        AND Group__c IN :groups
-                                        AND Round__c =:'Group Stage'];
+                                        WHERE Tournament__c IN :tournaments];
 
         List<Tournament_Team__c> tournamentTeams = [SELECT Id, Status__c, Team__c from Tournament_Team__c
                                         WHERE Tournament__c IN :tournaments];
@@ -28,7 +25,7 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
                                         FROM Group_Result__c
                                         WHERE Tournament__c IN :tournaments 
                                         AND Group__c IN :groups
-                                        ORDER BY Points__c DESC];
+                                        ORDER BY Points__c DESC, Goals_For__c DESC, Goals_Against__c ASC, Goal_Difference__c DESC, Wins__c DESC];
 
         Boolean teamCanPlay = checkIfTeamsCanPlay(tournamentTeams, newMatches);
         Boolean datesMatched = checkIfMatchDates(newMatches, oldMatches, groupResultList, tournamentTeams);
@@ -50,15 +47,14 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         List<Tournament_Team__c> teamTournaments = new List<Tournament_Team__c>();
         if(!groupStageCheck) {
             for(Match__c match : matches) {
-                if(match.Round__c != 'Group Stage') {
+                if(match.Round__c != 'Group Stage' && match.Team_2_Score__c != match.Team_1_Score__c) {
                     Id winner = match.Team_1_Score__c > match.Team_2_Score__c ? match.Team_1__c : match.Team_2__c;
                     Id looser = match.Team_1_Score__c < match.Team_2_Score__c ? match.Team_1__c : match.Team_2__c;
-                    String status = match.Round__c == 'Final' ? 'Winner' : 'Playing';
                     Tournament_Team__c roundWinner = tournamentTeamMap.get(winner);
-                    roundWinner.Status__c = status;
+                    roundWinner.Status__c = getTeamStanding(match.Round__c, true);
                     teamTournaments.add(roundWinner);
                     Tournament_Team__c roundLooser = tournamentTeamMap.get(looser);
-                    roundLooser.Status__c='Eliminated';
+                    roundLooser.Status__c= getTeamStanding(match.Round__c, false);
                     teamTournaments.add(roundLooser);
                 }
             }
@@ -94,25 +90,26 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         }
 
         for(Match__c match : newMatches) {
-            String groupId = match.Group__c;
-            List<Datetime> matchDates = matchCountByGroup.get(groupId);
-            matchDates.sort();
-            switch on matchDates.size() {
-                when 6 {
-                    if(matchDates[matchDates.size()-1] != matchDates[matchDates.size()-2]) {
-                        match.addError('The 2 last matches in a group should be at the same time');
-                        result = false;
-                        break;
+            if(match.Round__c == 'Group Stage') {
+                String groupId = match.Group__c;
+                List<Datetime> matchDates = matchCountByGroup.get(groupId);
+                matchDates.sort();
+                switch on matchDates.size() {
+                    when 6 {
+                        if(matchDates[matchDates.size()-1] != matchDates[matchDates.size()-2]) {
+                            match.addError('The 2 last matches in a group should be at the same time');
+                            result = false;
+                            break;
+                        }
+                        updateTournamentTeams(allMatches, groupResultList, tournamentTeams, true);
                     }
-                    updateTournamentTeams(allMatches, groupResultList, tournamentTeams, true);
-                }
-                when else {
-                    if(matchDates.size()>6 && match.Round__c == 'Group Stage') {
-                        match.addError('Cannot add more matches for these teams.');
+                    when else {
+                        if(matchDates.size()>6) {
+                            match.addError('Cannot add more matches for these teams.');
+                        }
                     }
                 }
             }
-
         }
         return result;
     }
@@ -180,19 +177,21 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         Map<String, List<Match__c>> matchesByTeam = new Map<String, List<Match__c>>();
         
         for (Match__c match : oldMatches) {
-            String id = match.Tournament__c + '_' + match.Group__c + '_';
+            if(match.Round__c == 'Group Stage') {
+                String id = match.Tournament__c + '_' + match.Group__c + '_';
     
-            // Check and add Team 1
-            if (!matchesByTeam.containsKey(id + match.Team_1__c)) {
-                matchesByTeam.put(id + match.Team_1__c, new List<Match__c>());
+                // Check and add Team 1
+                if (!matchesByTeam.containsKey(id + match.Team_1__c)) {
+                    matchesByTeam.put(id + match.Team_1__c, new List<Match__c>());
+                }
+                matchesByTeam.get(id + match.Team_1__c).add(match);
+        
+                // Check and add Team 2
+                if (!matchesByTeam.containsKey(id + match.Team_2__c)) {
+                    matchesByTeam.put(id + match.Team_2__c, new List<Match__c>());
+                }
+                matchesByTeam.get(id + match.Team_2__c).add(match);
             }
-            matchesByTeam.get(id + match.Team_1__c).add(match);
-    
-            // Check and add Team 2
-            if (!matchesByTeam.containsKey(id + match.Team_2__c)) {
-                matchesByTeam.put(id + match.Team_2__c, new List<Match__c>());
-            }
-            matchesByTeam.get(id + match.Team_2__c).add(match);
         }
         
         return matchesByTeam;
@@ -214,5 +213,22 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
             tournamentTeamMap.put(tournamentTeam.Team__c, tournamentTeam);
         }
         return tournamentTeamMap;
+    }
+
+    private String getTeamStanding(String round, Boolean winner) {
+        switch on round {
+            when 'Final' {
+                return winner ? 'Winner' : '2nd Place';
+            }
+            when 'Semi Finals' {
+                return winner ? 'Playing' : 'Qualified 3rd';
+            }
+            when '3rd Place' {
+                return winner ? '3rd Place' : 'Eliminated';
+            } 
+            when else {
+                return winner ? 'Playing' : 'Eliminated';
+            }
+        }
     }
 }
