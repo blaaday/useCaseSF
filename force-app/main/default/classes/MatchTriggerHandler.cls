@@ -1,7 +1,7 @@
 public with sharing class MatchTriggerHandler extends TriggerHandler {
     
     public MatchTriggerHandler() {
-        this.setMaxLoopCount(1);
+        // this.setMaxLoopCount(1);
     } 
 
     public override void beforeInsert() {
@@ -21,26 +21,29 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         List<Tournament_Team__c> tournamentTeams = [SELECT Id, Status__c, Team__c from Tournament_Team__c
                                         WHERE Tournament__c IN :tournaments];
 
-        List<Group_Result__c> groupResultList =  [SELECT Id, Team__c, Tournament__c, Group__c, Goals_For__c, Goals_Against__c, Wins__c, Losses__c, Draws__c 
+        List<Group_Result__c> groupResultList =  [SELECT Id, Team__c, Tournament__c, Group__c, Goals_For__c, Goals_Against__c, Wins__c, Losses__c, Draws__c, Points__c
                                         FROM Group_Result__c
                                         WHERE Tournament__c IN :tournaments 
-                                        AND Group__c IN :groups
-                                        ORDER BY Points__c DESC, Goals_For__c DESC, Goals_Against__c ASC, Goal_Difference__c DESC, Wins__c DESC];
+                                        AND Group__c IN :groups];
 
         Boolean teamCanPlay = checkIfTeamsCanPlay(tournamentTeams, newMatches);
-        Boolean datesMatched = checkIfMatchDates(newMatches, oldMatches, groupResultList, tournamentTeams);
+        
         if(teamCanPlay) {
+            Boolean datesMatched = checkIfMatchDates(newMatches, oldMatches, groupResultList, tournamentTeams);
             if(datesMatched) {
                 updateGroupResult(groupResultList, oldMatches, newMatches);
+                updateTournamentTeams(newMatches, groupResultList, tournamentTeams, tournaments, groups, true);
             }
-            updateTournamentTeams(newMatches, groupResultList, tournamentTeams, false);
+            updateTournamentTeams(newMatches, groupResultList, tournamentTeams, tournaments, groups, false);
         }
     }
 
     private void updateTournamentTeams(
         List<Match__c> matches, 
         List<Group_Result__c> groupResultList, 
-        List<Tournament_Team__c> tournamentTeams, 
+        List<Tournament_Team__c> tournamentTeams,
+        Set<Id> tournaments,
+        Set<Id> groups,
         Boolean groupStageCheck) {
 
         Map<Id, Tournament_Team__c> tournamentTeamMap = teamTournamentsMap(tournamentTeams);
@@ -59,15 +62,21 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
                 }
             }
         } else {
-            for (Integer i = 0; i < groupResultList.size(); i++) {
-                Tournament_Team__c teamResult = tournamentTeamMap.get(groupResultList[i].Team__c);
-                if(i < 2) {
-                    teamResult.Status__c='Playing';
-                } else {
-                    teamResult.Status__c='Eliminated';
+            Map<Id, List<Group_Result__c>> groupResultByGroup = getGroupResultByGroup(tournaments, groups);
+            for(Id groupId: groupResultByGroup.keySet()) {
+                List<Group_Result__c> groupResults = groupResultByGroup.get(groupId);
+                groupResults.sort(new GroupResultComparator());
+                for (Integer i = 0; i < groupResults.size(); i++) {
+                    Tournament_Team__c teamResult = tournamentTeamMap.get(groupResults[i].Team__c);
+                    if(i < 2) {
+                        teamResult.Status__c='Playing';
+                    } else {
+                        teamResult.Status__c='Eliminated';
+                    }
+                    teamTournaments.add(teamResult);
                 }
-                teamTournaments.add(teamResult);
             }
+            
         }
         update teamTournaments;
     }
@@ -100,8 +109,7 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
                             match.addError('The 2 last matches in a group should be at the same time');
                             result = false;
                             break;
-                        }
-                        updateTournamentTeams(allMatches, groupResultList, tournamentTeams, true);
+                        } 
                     }
                     when else {
                         if(matchDates.size()>6) {
@@ -109,6 +117,8 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
                         }
                     }
                 }
+            } else {
+                result = false;
             }
         }
         return result;
@@ -121,7 +131,12 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         }
         
         for(Match__c match : newMatches) {
-            if(statusByTeam.get(match.Team_1__c) != 'Playing' || statusByTeam.get(match.Team_2__c) != 'Playing') {
+            if(statusByTeam.get(match.Team_1__c) != 'Playing' &&
+                statusByTeam.get(match.Team_1__c) != 'Qualified 3rd' &&
+                statusByTeam.get(match.Team_2__c) != 'Playing' &&
+                statusByTeam.get(match.Team_2__c) != 'Qualified 3rd') {
+                System.debug('Team 1 :' + statusByTeam.get(match.Team_1__c));
+                System.debug('Team 1 :' + statusByTeam.get(match.Team_2__c));
                 match.addError('Cannot add a non playing (Eliminated) team to a new match on this tournament');
                 status = false;
                 break;
@@ -206,6 +221,21 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         return groupResultByTeam;
     }
 
+    private Map<Id, List<Group_Result__c>> getGroupResultByGroup(Set<Id> tournaments, Set<Id> groups) {
+        List<Group_Result__c> groupResults =  [SELECT Id, Team__c, Tournament__c, Group__c, Goals_For__c, Goals_Against__c, Wins__c, Losses__c, Draws__c, Points__c
+                                        FROM Group_Result__c
+                                        WHERE Tournament__c IN :tournaments 
+                                        AND Group__c IN :groups];
+        Map<Id, List<Group_Result__c>> groupResultByGroup = new Map<Id, List<Group_Result__c>>();
+        for(Group_Result__c groupResult : groupResults) {
+            if(!groupResultByGroup.containsKey(groupResult.Group__c)) {
+                groupResultByGroup.put(groupResult.Group__c, new List<Group_Result__c>{});
+            }
+            groupResultByGroup.get(groupResult.Group__c).add(groupResult);
+        }
+        return groupResultByGroup;
+    }
+
     private Map<Id, Tournament_Team__c> teamTournamentsMap(List<Tournament_Team__c> tournamentTeams) {
         Map<Id, Tournament_Team__c> tournamentTeamMap = new Map<Id, Tournament_Team__c>();
 
@@ -228,6 +258,20 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
             } 
             when else {
                 return winner ? 'Playing' : 'Eliminated';
+            }
+        }
+    }
+
+
+    public class GroupResultComparator implements Comparator<Group_Result__c> {
+        public Integer compare(Group_Result__c a, Group_Result__c b) {
+            // Compare points field of Group_Result__c objects
+            if (a.Points__c > b.Points__c) {
+                return -1;
+            } else if (a.Points__c == b.Points__c) {
+                return 0;
+            } else {
+                return 1;
             }
         }
     }

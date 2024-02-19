@@ -1,0 +1,12 @@
+.match-details-container {
+    height: 415px; 
+    overflow-y: auto;
+}
+
+.match-details-inner {
+    padding-right: 16px;
+}
+
+.matches-heading {
+    padding-bottom: 16px;
+}

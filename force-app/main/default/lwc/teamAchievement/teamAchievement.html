@@ -1,0 +1,20 @@
+<template>
+    <div class="slds-box slds-theme_default">
+        <p class="slds-text-heading_medium matches-heading">Team Achievements ({numberOfAchievements})</p>
+        <template for:each={teamAchievements} for:item="achievement" if:true={teamAchievements}>
+            <div key={achievement.Id} class="slds-card">
+                <header class="slds-card__header">
+                    <p class="slds-text-heading_small slds-text-align_center">{achievement.Status__c}</p>
+                </header>
+                <div class="slds-card__body slds-p-around_medium slds-text-align_center">
+                    <p class="slds-text-heading_small"> 
+                        <a href={achievement.tournament} class="slds-text-link">{achievement.Tournament__r.Name}</a>
+                    </p>
+                </div>
+            </div>
+        </template>
+        <template if:false={teamAchievements}>
+            <p class="slds-text-heading_small">No achievement for this team.</p>
+        </template>
+    </div>
+</template>
