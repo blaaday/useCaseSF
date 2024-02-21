@@ -12,7 +12,7 @@ public with sharing class TournamentFactory implements RecordFactory {
             );
             tournaments.add(tournament);
         }
-        if(tournaments.size() > 0) {
+        if(tournaments.size() > 0 && Schema.sObjectType.Tournament__c.isCreateable()) {
             insert tournaments;
         }
         return tournaments;

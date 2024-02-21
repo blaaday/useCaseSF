@@ -16,7 +16,7 @@ public with sharing class MatchFactory implements RecordFactory {
             );
             matches.add(match);
         }
-        if(matches.size() > 0) {
+        if(matches.size() > 0 && Schema.sObjectType.Match__c.isCreateable()) {
             insert matches;
         }
         return matches;

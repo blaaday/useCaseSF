@@ -17,7 +17,7 @@ public with sharing class TournamentTriggerHelper extends TriggerHandler {
             groupResults.add(groupResult);
         }
 
-        if(groupResults.size() > 0) {
+        if(groupResults.size() > 0 && Schema.sObjectType.Group_Result__c.isCreateable()) {
             insert groupResults;
         }
     }

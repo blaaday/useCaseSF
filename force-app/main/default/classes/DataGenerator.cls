@@ -87,7 +87,7 @@ public with sharing class DataGenerator {
 
     public static List<Map<String, Object>> generateTournamentTeams(Map<Id, List<Group__c>> groupsPerTournament) {
         List<Map<String, Object>> records = new List<Map<String, Object>>();
-        List<Team__c> teams = [SELECT Id FROM Team__c];
+        List<Team__c> teams = [SELECT Id FROM Team__c WITH SECURITY_ENFORCED];
         shuffleList(teams);
 
         for(List<Group__c> groups: groupsPerTournament.values()){
@@ -136,7 +136,7 @@ public with sharing class DataGenerator {
     public static List<Map<String, Object>> generateKnockOutMatches(List<Tournament__c> tournaments, String round) {
         List<Map<String, Object>> records = new List<Map<String, Object>>();
         String tournamentStatus = round != '3rd Place' ? 'Playing' : 'Qualified 3rd';
-        List<Tournament_Team__c> teams = [SELECT Id, Tournament__c, Team__c from Tournament_Team__c WHERE Tournament__c IN :tournaments AND Status__c=:tournamentStatus];
+        List<Tournament_Team__c> teams = [SELECT Id, Tournament__c, Team__c from Tournament_Team__c WHERE Tournament__c IN :tournaments AND Status__c=:tournamentStatus WITH SECURITY_ENFORCED];
         for(Integer i = 0; i < teams.size()/2; i++) {
             Integer scoreTeam1 = generateRandomScore();
             Integer scoreTeam2 = generateRandomScore();
@@ -165,7 +165,7 @@ public with sharing class DataGenerator {
             );
             teams.add(team);
         }
-        if(teams.size() > 0) {
+        if(teams.size() > 0 && Schema.sObjectType.Team__c.isCreateable()) {
             insert teams;
         }
     }

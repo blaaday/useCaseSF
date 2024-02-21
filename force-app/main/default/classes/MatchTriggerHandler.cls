@@ -16,15 +16,15 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
 
         List<Match__c> oldMatches = [SELECT Id, Tournament__c, Group__c, Team_1__c, Team_2__c, Match_Date__c, Round__c
                                         FROM Match__c
-                                        WHERE Tournament__c IN :tournaments AND Approved__c= True];
+                                        WHERE Tournament__c IN :tournaments AND Approved__c= True WITH SECURITY_ENFORCED];
 
         List<Tournament_Team__c> tournamentTeams = [SELECT Id, Status__c, Team__c from Tournament_Team__c
-                                        WHERE Tournament__c IN :tournaments AND Approved__c= True];
+                                        WHERE Tournament__c IN :tournaments AND Approved__c= True WITH SECURITY_ENFORCED];
 
         List<Group_Result__c> groupResultList =  [SELECT Id, Team__c, Tournament__c, Group__c, Goals_For__c, Goals_Against__c, Wins__c, Losses__c, Draws__c, Points__c
                                         FROM Group_Result__c
                                         WHERE Tournament__c IN :tournaments 
-                                        AND Group__c IN :groups AND Approved__c= True];
+                                        AND Group__c IN :groups AND Approved__c= True WITH SECURITY_ENFORCED];
 
         Boolean teamCanPlay = checkIfTeamsCanPlay(tournamentTeams, newMatches);
         
@@ -78,7 +78,10 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
             }
             
         }
-        update teamTournaments;
+        if(Schema.sObjectType.Tournament_Team__c.isUpdateable()) {
+            update teamTournaments;
+        }
+        
     }
 
     private Boolean checkIfMatchDates(List<Match__c> newMatches, List<Match__c> oldMatches, List<Group_Result__c> groupResultList, List<Tournament_Team__c> tournamentTeams) {

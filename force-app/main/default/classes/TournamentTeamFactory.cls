@@ -11,7 +11,7 @@ public with sharing class TournamentTeamFactory implements RecordFactory {
             );
             tournamentTeams.add(tournamentTeam);
         }
-        if(tournamentTeams.size() > 0) {
+        if(tournamentTeams.size() > 0 && Schema.sObjectType.Tournament_Team__c.isCreateable()) {
             insert tournamentTeams;
         }
         return tournamentTeams;

@@ -5,6 +5,6 @@ global with sharing class GroupResultAPI {
     global static List<Group_Result__c> getGroupResults() {
         RestRequest req = RestContext.request;
         String tournamentId = req.requestURI.substring(req.requestURI.lastIndexOf('/') + 1);
-        return [SELECT Id, Name FROM Group_Result__c WHERE Tournament__c = :tournamentId AND Approved__c=True];
+        return [SELECT Id, Name FROM Group_Result__c WHERE Tournament__c = :tournamentId AND Approved__c=True WITH SECURITY_ENFORCED];
     }
 }

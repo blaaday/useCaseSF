@@ -9,7 +9,7 @@ public with sharing class GroupFactory implements RecordFactory {
             );
             groups.add(groupRecord);
         }
-        if(groups.size() > 0) {
+        if(groups.size() > 0 && Schema.sObjectType.Group__c.isCreateable()) {
             insert groups;
         }
         return groups;
