@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Score_Validation</fullName>
+    <active>true</active>
+    <errorConditionFormula>( AND(Match_Date__c &gt;  NOW(),    OR(NOT(ISBLANK( Team_1_Score__c )),NOT(ISBLANK( Team_2_Score__c  )))   ) )</errorConditionFormula>
+    <errorMessage>Cannot set score of a match until the game is already done.</errorMessage>
+</ValidationRule>

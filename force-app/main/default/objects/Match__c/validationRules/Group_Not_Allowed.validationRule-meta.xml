@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Group_Not_Allowed</fullName>
+    <active>true</active>
+    <description>Here is a validation of group field to not fill it while we are in a round different than Group Stage</description>
+    <errorConditionFormula>AND(NOT(ISPICKVAL( Round__c , &apos;Group Stage&apos;)),NOT( ISBLANK( Group__c ) ))</errorConditionFormula>
+    <errorDisplayField>Group__c</errorDisplayField>
+    <errorMessage>Group field should filled only on Group Stage</errorMessage>
+</ValidationRule>

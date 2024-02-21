@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Group_Required</fullName>
+    <active>true</active>
+    <description>Group field is required when we are on Group Stage</description>
+    <errorConditionFormula>AND(ISPICKVAL( Round__c , &apos;Group Stage&apos;),  ISBLANK( Group__c ) )</errorConditionFormula>
+    <errorDisplayField>Group__c</errorDisplayField>
+    <errorMessage>Group field is required on Group Stage</errorMessage>
+</ValidationRule>

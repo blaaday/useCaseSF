@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Tournament_Date_Validation</fullName>
+    <active>true</active>
+    <errorConditionFormula>OR(AND(
+            Start_Date__c &gt; TODAY(),
+            NOT(ISPICKVAL(Status__c, &quot;Upcoming&quot;))
+        ),
+        AND(
+            End_Date__c &lt; TODAY(),
+            NOT(ISPICKVAL(Status__c, &quot;Completed&quot;))
+        ),
+        AND(
+            Start_Date__c &lt;= TODAY(),
+            End_Date__c &gt;= TODAY(),
+            NOT(ISPICKVAL(Status__c, &quot;Ongoing&quot;))
+        ))</errorConditionFormula>
+    <errorMessage>Please check tournaments dates or tournament status.</errorMessage>
+</ValidationRule>
