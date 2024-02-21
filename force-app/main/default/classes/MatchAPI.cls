@@ -9,6 +9,6 @@ global with sharing class MatchAPI {
         String tournamentId = req.requestURI.substringAfter('/tournament/');
         return [SELECT Id, Name, Tournament__r.Name, Team_1__r.Name, Team_2__r.Name, Team_2__r.Logo__c, Team_1__r.Logo__c, Match_Date__c
         FROM Match__c 
-        WHERE (Team_1__c = :teamId OR Team_2__c = :teamId)];
+        WHERE (Team_1__c = :teamId OR Team_2__c = :teamId) AND (Approved__c=True)];
     }
 }

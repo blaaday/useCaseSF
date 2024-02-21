@@ -6,5 +6,5 @@
 //     SFDX: Execute Anonymous Apex with Editor Contents
 
 string tempvar = 'Enter_your_name_here';
-System.debug('Hello World!');
-System.debug('My name is ' + tempvar);
+Nebula.Logger.info('Hello World!');
+Nebula.Logger.info('My name is ' + tempvar);

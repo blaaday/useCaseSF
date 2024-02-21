@@ -16,15 +16,15 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
 
         List<Match__c> oldMatches = [SELECT Id, Tournament__c, Group__c, Team_1__c, Team_2__c, Match_Date__c, Round__c
                                         FROM Match__c
-                                        WHERE Tournament__c IN :tournaments];
+                                        WHERE Tournament__c IN :tournaments AND Approved__c= True];
 
         List<Tournament_Team__c> tournamentTeams = [SELECT Id, Status__c, Team__c from Tournament_Team__c
-                                        WHERE Tournament__c IN :tournaments];
+                                        WHERE Tournament__c IN :tournaments AND Approved__c= True];
 
         List<Group_Result__c> groupResultList =  [SELECT Id, Team__c, Tournament__c, Group__c, Goals_For__c, Goals_Against__c, Wins__c, Losses__c, Draws__c, Points__c
                                         FROM Group_Result__c
                                         WHERE Tournament__c IN :tournaments 
-                                        AND Group__c IN :groups];
+                                        AND Group__c IN :groups AND Approved__c= True];
 
         Boolean teamCanPlay = checkIfTeamsCanPlay(tournamentTeams, newMatches);
         
@@ -135,8 +135,6 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
                 statusByTeam.get(match.Team_1__c) != 'Qualified 3rd' &&
                 statusByTeam.get(match.Team_2__c) != 'Playing' &&
                 statusByTeam.get(match.Team_2__c) != 'Qualified 3rd') {
-                System.debug('Team 1 :' + statusByTeam.get(match.Team_1__c));
-                System.debug('Team 1 :' + statusByTeam.get(match.Team_2__c));
                 match.addError('Cannot add a non playing (Eliminated) team to a new match on this tournament');
                 status = false;
                 break;
@@ -225,7 +223,7 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         List<Group_Result__c> groupResults =  [SELECT Id, Team__c, Tournament__c, Group__c, Goals_For__c, Goals_Against__c, Wins__c, Losses__c, Draws__c, Points__c
                                         FROM Group_Result__c
                                         WHERE Tournament__c IN :tournaments 
-                                        AND Group__c IN :groups];
+                                        AND Group__c IN :groups AND Approved__c= True];
         Map<Id, List<Group_Result__c>> groupResultByGroup = new Map<Id, List<Group_Result__c>>();
         for(Group_Result__c groupResult : groupResults) {
             if(!groupResultByGroup.containsKey(groupResult.Group__c)) {

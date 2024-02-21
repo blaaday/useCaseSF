@@ -7,7 +7,8 @@ public with sharing class TournamentFactory implements RecordFactory {
                 Name=(String) record.get('Name'),
                 Start_Date__c=(Date) record.get('Start_Date__c'),
                 End_Date__c=(Date) record.get('End_Date__c'),
-                Status__c=(String) record.get('Status__c')
+                Status__c=(String) record.get('Status__c'),
+                Approved__c=true
             );
             tournaments.add(tournament);
         }

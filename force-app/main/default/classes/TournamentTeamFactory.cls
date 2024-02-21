@@ -6,7 +6,8 @@ public with sharing class TournamentTeamFactory implements RecordFactory {
                 Tournament__c=(Id) record.get('Tournament__c'),
                 Team__c=(Id) record.get('Team__c'),
                 Group__c=(Id) record.get('Group__c'),
-                Status__c=(String) record.get('Status__c')
+                Status__c=(String) record.get('Status__c'),
+                Approved__c=true
             );
             tournamentTeams.add(tournamentTeam);
         }

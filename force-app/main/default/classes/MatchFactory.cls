@@ -11,7 +11,8 @@ public with sharing class MatchFactory implements RecordFactory {
                 Team_1__c=(Id) record.get('Team_1__c'),
                 Team_2__c=(Id) record.get('Team_2__c'),
                 Team_1_Score__c=(Integer) record.get('Team_1_Score__c'),
-                Team_2_Score__c=(Integer) record.get('Team_2_Score__c')
+                Team_2_Score__c=(Integer) record.get('Team_2_Score__c'),
+                Approved__c=true
             );
             matches.add(match);
         }

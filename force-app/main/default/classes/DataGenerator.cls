@@ -10,12 +10,12 @@ public with sharing class DataGenerator {
         // Start setting up the tournament by creating the tournament.
         List<Map<String, Object>> tournaments = generateTournaments(1);
         List<Tournament__c> generatedTournaments = tournamentFactory.createRecord(tournaments);
-        System.debug('Generated ' + generatedTournaments.size() + ' Tournament(s).');
+        Nebula.Logger.info('Generated ' + generatedTournaments.size() + ' Tournament(s).');
 
         // Next we need to create groups of this tournament.
         List<Map<String, Object>> groups = generateGroups(generatedTournaments);
         List<Group__c> generatedGroups = groupFactory.createRecord(groups);
-        System.debug('Generated ' + generatedGroups.size() + ' Group(s).');
+        Nebula.Logger.info('Generated ' + generatedGroups.size() + ' Group(s).');
 
          // Before adding teams we need to process the list of groups to group each list of groups on their respective tournament.
         Map<Id, List<Group__c>> groupsByTournament = getGroupsByTournaments(generatedGroups);
@@ -23,35 +23,35 @@ public with sharing class DataGenerator {
         // Next we need to Team to these groups, so we need to add Tournament Teams.
         List<Map<String, Object>> tournamentTeams = generateTournamentTeams(groupsByTournament);
         List<Tournament_Team__c> generatedTournamentTeams = tournamentTeamsFactory.createRecord(tournamentTeams);
-        System.debug('Generated ' + generatedTournamentTeams.size() + ' Tournament Team(s).');
+        Nebula.Logger.info('Generated ' + generatedTournamentTeams.size() + ' Tournament Team(s).');
 
         // Again before generating any match we need a list of teams by Group.
         Map<Id, List<Id>> teamsByGroup = getTeamsByGroup(generatedTournamentTeams);
 
         List<Map<String, Object>> generatedGroupStageMatches = generateGroupStageMatches(teamsByGroup, generatedGroups);
         matchFactory.createRecord(generatedGroupStageMatches);
-        System.debug('Generated ' + generatedGroupStageMatches.size() + ' Match(s).');
+        Nebula.Logger.info('Generated ' + generatedGroupStageMatches.size() + ' Match(s).');
 
         List<Map<String, Object>> generatedGroupOf16Matches = generateKnockOutMatches(generatedTournaments, 'Round of 16');
-        System.debug('Generated ' + generatedGroupOf16Matches.size() + ' Round of 16 Matches.');
+        Nebula.Logger.info('Generated ' + generatedGroupOf16Matches.size() + ' Round of 16 Matches.');
         matchFactory.createRecord(generatedGroupOf16Matches);
 
         List<Map<String, Object>> generatedQuarterFinalsMatches = generateKnockOutMatches(generatedTournaments, 'Quarter Finals');
-        System.debug('Generated ' + generatedQuarterFinalsMatches.size() + ' Quarter Finals Matches.');
+        Nebula.Logger.info('Generated ' + generatedQuarterFinalsMatches.size() + ' Quarter Finals Matches.');
         matchFactory.createRecord(generatedQuarterFinalsMatches);
 
 
         List<Map<String, Object>> generatedSemiFinalsMatches = generateKnockOutMatches(generatedTournaments, 'Semi Finals');
         matchFactory.createRecord(generatedSemiFinalsMatches);
-        System.debug('Generated ' + generatedSemiFinalsMatches.size() + ' Semi Finals Matches.');
+        Nebula.Logger.info('Generated ' + generatedSemiFinalsMatches.size() + ' Semi Finals Matches.');
 
         List<Map<String, Object>> generated3rdPlaceMatch = generateKnockOutMatches(generatedTournaments, '3rd Place');
         matchFactory.createRecord(generated3rdPlaceMatch);
-        System.debug('Generated ' + generated3rdPlaceMatch.size() + ' 3rd Place Match.');
+        Nebula.Logger.info('Generated ' + generated3rdPlaceMatch.size() + ' 3rd Place Match.');
 
         List<Map<String, Object>> generatedFinalMatch = generateKnockOutMatches(generatedTournaments, 'Final');
         matchFactory.createRecord(generatedFinalMatch);
-        System.debug('Generated ' + generatedFinalMatch.size() + ' Final Matche.');
+        Nebula.Logger.info('Generated ' + generatedFinalMatch.size() + ' Final Matche.');
 
     }
     
@@ -142,7 +142,7 @@ public with sharing class DataGenerator {
             Integer scoreTeam2 = generateRandomScore();
             Map<String, Object> record = new Map<String, Object>{
                 'Tournament__c'=> teams[i].Tournament__c,
-                'Match_Date__c'=> (Datetime) generateRandomPastDate(10, 19),
+                'Match_Date__c'=> (Datetime) generateRandomPastDate(teams.size(), 15),
                 'Round__c'=> round,
                 'Team_1__c'=> teams[i].Team__c,
                 'Team_2__c'=> teams[teams.size() - i - 1].Team__c,
@@ -152,6 +152,22 @@ public with sharing class DataGenerator {
             records.add(record);
         }
         return records;
+    }
+
+    public static void generateTeams(Integer numberOfTeams) {
+        List<Team__c> teams = new List<Team__c>();
+        Schema.DescribeFieldResult fieldResult = Team__c.Country__c.getDescribe();
+        List<Schema.PicklistEntry> picklistValues = fieldResult.getPicklistValues();
+        for(Integer i = 0; i < numberOfTeams; i++) {
+            Team__c team = new Team__c(
+                Name=picklistValues[i].getValue(),
+                Country__c=picklistValues[i].getValue()
+            );
+            teams.add(team);
+        }
+        if(teams.size() > 0) {
+            insert teams;
+        }
     }
 
     private static Map<Id, List<Id>> getTeamsByGroup(List<Tournament_Team__c> teams) {

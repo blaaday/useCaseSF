@@ -11,7 +11,8 @@ public with sharing class TournamentTriggerHelper extends TriggerHandler {
             Group_Result__c groupResult = new Group_Result__c(
                 Group__c=team.Group__c,
                 Tournament__c=team.Tournament__c,
-                Team__c=team.Team__c
+                Team__c=team.Team__c,
+                Approved__c=true
             );
             groupResults.add(groupResult);
         }
