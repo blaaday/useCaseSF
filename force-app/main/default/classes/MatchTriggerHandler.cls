@@ -1,13 +1,8 @@
 public with sharing class MatchTriggerHandler extends TriggerHandler {
-    
-    public MatchTriggerHandler() {
-        // this.setMaxLoopCount(1);
-    } 
 
     public override void beforeInsert() {
         List<Match__c> newMatches = (List<Match__c>) Trigger.new;
         Set<Id> tournaments = new Set<Id>();
-        Set<Id> teams = new Set<Id>();
         Set<Id> groups = new Set<Id>();
         for (Match__c match : newMatches) {
             tournaments.add(match.Tournament__c);
@@ -154,10 +149,10 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         for (Match__c match : newMatches) {
             if(match.Round__c == 'Group Stage') {
                 string id = match.Tournament__c + '_' + match.Group__c + '_';
-                Integer team_1_matches = (matchesByTeam.containsKey(id + match.Team_1__c)) ? matchesByTeam.get(id + match.Team_1__c).size() : 0;
-                Integer team_2_matches = (matchesByTeam.containsKey(id + match.Team_2__c)) ? matchesByTeam.get(id + match.Team_2__c).size() : 0;
+                Integer team1Matches = (matchesByTeam.containsKey(id + match.Team_1__c)) ? matchesByTeam.get(id + match.Team_1__c).size() : 0;
+                Integer team2Matches = (matchesByTeam.containsKey(id + match.Team_2__c)) ? matchesByTeam.get(id + match.Team_2__c).size() : 0;
                 // Check if we're allowed to add more matches between these 2 teams. 
-                if(team_1_matches <= 2 && team_2_matches <= 2) {
+                if(team1Matches <= 2 && team2Matches <= 2) {
                     // Now we are allowed so we can go on and update their respective Group Result.
                     // But before that we need to do some check on match result.
                     Group_Result__c groupResultTeam1 = groupResults.get(match.Team_1__c);
@@ -226,7 +221,7 @@ public with sharing class MatchTriggerHandler extends TriggerHandler {
         List<Group_Result__c> groupResults =  [SELECT Id, Team__c, Tournament__c, Group__c, Goals_For__c, Goals_Against__c, Wins__c, Losses__c, Draws__c, Points__c
                                         FROM Group_Result__c
                                         WHERE Tournament__c IN :tournaments 
-                                        AND Group__c IN :groups AND Approved__c= True];
+                                        AND Group__c IN :groups AND Approved__c= True WITH SECURITY_ENFORCED];
         Map<Id, List<Group_Result__c>> groupResultByGroup = new Map<Id, List<Group_Result__c>>();
         for(Group_Result__c groupResult : groupResults) {
             if(!groupResultByGroup.containsKey(groupResult.Group__c)) {

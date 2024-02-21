@@ -1,6 +1,6 @@
 public with sharing class MatchController {
     
-    private static final List<String> tournamentResults = new List<String>{
+    private static final List<String> Tournament_Results = new List<String>{
         '2nd Place',
         '3rd Place',
         'Winner'
@@ -18,7 +18,7 @@ public with sharing class MatchController {
     public static List<Tournament_Team__c> getTeamAchievements(String teamId) {
         return [SELECT Id, Name, Status__c, Tournament__r.Name, Tournament__c
                 FROM Tournament_Team__c 
-                WHERE (Team__c =:teamId) AND (Status__c IN :tournamentResults)  AND (Approved__c=True) WITH SECURITY_ENFORCED];
+                WHERE (Team__c =:teamId) AND (Status__c IN :Tournament_Results)  AND (Approved__c=True) WITH SECURITY_ENFORCED];
     }
 
 }

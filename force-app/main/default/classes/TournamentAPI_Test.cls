@@ -31,7 +31,7 @@ private class TournamentAPI_Test {
         List<Tournament__c> tournaments = TournamentAPI.getTournaments();
         Test.stopTest();
 
-        System.assertEquals(1, tournaments.size()); // Only one tournament should be returned
-        System.assertEquals(testTournament1.Id, tournaments[0].Id);
+        System.assertEquals(1, tournaments.size(), 'Only one tournament should be returned');
+        System.assertEquals(testTournament1.Id, tournaments[0].Id, 'Tournament Ids are different.');
     }
 }

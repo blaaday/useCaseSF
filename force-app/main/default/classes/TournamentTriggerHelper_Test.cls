@@ -46,12 +46,12 @@ private class TournamentTriggerHelper_Test {
         // Query for Group_Result__c records
         List<Group_Result__c> groupResults = [SELECT Id, Group__c, Tournament__c, Team__c, Approved__c FROM Group_Result__c];
         // Assert that Group_Result__c records were created
-        System.assertEquals(1, groupResults.size());
+        System.assertEquals(1, groupResults.size(), 'We should have only one group result');
         Group_Result__c groupResult = groupResults[0];
-        System.assertEquals(groupId, groupResult.Group__c);
-        System.assertEquals(tournamentId, groupResult.Tournament__c);
-        System.assertEquals(teamId, groupResult.Team__c);
-        System.assertEquals(true, groupResult.Approved__c);
+        System.assertEquals(groupId, groupResult.Group__c, 'We should have the same Group');
+        System.assertEquals(tournamentId, groupResult.Tournament__c, 'We should have the same tournament');
+        System.assertEquals(teamId, groupResult.Team__c, 'We should have the same Team');
+        System.assertEquals(true, groupResult.Approved__c, 'Group Result should be approved');
         Test.stopTest();
     }
 }

@@ -46,13 +46,13 @@ private class TournamentTeamFactory_Test {
         Test.stopTest();
 
         // Verify the records were created
-        System.assertEquals(1, createdRecords.size());
+        System.assertEquals(1, createdRecords.size(), 'We should have one tournament team.');
         Tournament_Team__c createdRecord = createdRecords[0];
         System.assertNotEquals(null, createdRecord.Id);
-        System.assertEquals(record1.get('Tournament__c'), createdRecord.Tournament__c);
-        System.assertEquals(record1.get('Team__c'), createdRecord.Team__c);
-        System.assertEquals(record1.get('Group__c'), createdRecord.Group__c);
-        System.assertEquals(record1.get('Status__c'), createdRecord.Status__c);
-        System.assertEquals(true, createdRecord.Approved__c);
+        System.assertEquals(record1.get('Tournament__c'), createdRecord.Tournament__c, 'We should have same tournament Id');
+        System.assertEquals(record1.get('Team__c'), createdRecord.Team__c, 'We should have same team Id');
+        System.assertEquals(record1.get('Group__c'), createdRecord.Group__c, 'We should have same group Id');
+        System.assertEquals(record1.get('Status__c'), createdRecord.Status__c, 'We should have same status');
+        System.assertEquals(true, createdRecord.Approved__c, 'Record should approved');
     }
 }

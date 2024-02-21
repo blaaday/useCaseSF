@@ -5,26 +5,26 @@ private class RecordFactoryProvider_Test {
     static void testGetFactory() {
         // Test getting TournamentFactory
         RecordFactory tournamentFactory = RecordFactoryProvider.getFactory('Tournament');
-        System.assertNotEquals(null, tournamentFactory);
-        System.assert(tournamentFactory instanceof TournamentFactory);
-        
+        System.assertNotEquals(null, tournamentFactory, 'TournamentFactory should not be null');
+        System.assertEquals(true, tournamentFactory instanceof TournamentFactory, 'Expected TournamentFactory instance');
+
         // Test getting GroupFactory
         RecordFactory groupFactory = RecordFactoryProvider.getFactory('Group');
-        System.assertNotEquals(null, groupFactory);
-        System.assert(groupFactory instanceof GroupFactory);
-        
+        System.assertNotEquals(null, groupFactory, 'GroupFactory should not be null');
+        System.assertEquals(true, groupFactory instanceof GroupFactory, 'Expected GroupFactory instance');
+
         // Test getting TournamentTeamFactory
         RecordFactory tournamentTeamFactory = RecordFactoryProvider.getFactory('TournamentTeam');
-        System.assertNotEquals(null, tournamentTeamFactory);
-        System.assert(tournamentTeamFactory instanceof TournamentTeamFactory);
-        
+        System.assertNotEquals(null, tournamentTeamFactory, 'TournamentTeamFactory should not be null');
+        System.assertEquals(true, tournamentTeamFactory instanceof TournamentTeamFactory, 'Expected TournamentTeamFactory instance');
+
         // Test getting MatchFactory
         RecordFactory matchFactory = RecordFactoryProvider.getFactory('Match');
-        System.assertNotEquals(null, matchFactory);
-        System.assert(matchFactory instanceof MatchFactory);
-        
+        System.assertNotEquals(null, matchFactory, 'MatchFactory should not be null');
+        System.assertEquals(true, matchFactory instanceof MatchFactory, 'Expected MatchFactory instance');
+
         // Test getting null for unsupported object type
         RecordFactory unsupportedFactory = RecordFactoryProvider.getFactory('Unsupported');
-        System.assertEquals(null, unsupportedFactory);
+        System.assertEquals(null, unsupportedFactory, 'Unsupported factory should return null');
     }
 }
